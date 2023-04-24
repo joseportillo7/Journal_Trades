@@ -27,16 +27,13 @@ const tradeSchema = Schema({
     exit_name: {
         type: String,
     },
-    entry_time: {
-        type: String,
-    },
     profit: {
         type: String,
     }
 })
 
 tradeSchema.methods.toJSON = function(){
-    const {__v, ...trade} = this.toObject()
+    const {__v, _id, ...trade} = this.toObject()
     return trade
 }
 

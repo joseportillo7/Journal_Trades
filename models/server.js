@@ -8,6 +8,7 @@ class Server {
         this.port = process.env.PORT
 
         this.connectDB()
+        this.middlewares()
         this.routes()
     }
 
@@ -21,9 +22,7 @@ class Server {
     }
 
     routes(){
-        this.app.get('/login', (req, res)=>{
-            res.send('Welcome to the Journal Trades!')
-        })
+        this.app.use('/api/journal',require('../routes'))
     }
 
     listen(){
