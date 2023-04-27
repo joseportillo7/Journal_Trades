@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const connectionDB = require('../database/config')
+const sequelize = require('../database/config')
 
 class Server {
     constructor(){
@@ -13,7 +13,12 @@ class Server {
     }
 
     async connectDB(){
-        await connectionDB()
+        try {
+            await sequelize.authenticate()
+            console.log('Connection has been successfully');
+        } catch (error) {
+            console.log('Unable to connect to the database: '+error);
+        }
     }
 
     middlewares(){
