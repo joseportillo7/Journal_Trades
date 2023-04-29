@@ -9,7 +9,12 @@ const { Controllers } = require('../controllers')
 router.get('/users', Controllers.getUsers)
 
 router.get('/user/:id', [
-    check('id').notEmpty().withMessage(`Id cannot be empty`)
+    check('id').notEmpty().withMessage(`Id cannot be empty`),
+
+    //custom validations
+    check('id').custom(validations.isValidIdUser),
+    check('id').custom(validations.existUser)
+
 ], Controllers.getUserById)
 
 router.post('/createUser', [
@@ -31,16 +36,21 @@ router.put('/updateUser/:id', [
     check('password').notEmpty().withMessage('The field password cannot be empty'),
 
     //custom validations
+    check('id').custom(validations.isValidIdUser),
     check('email').custom(validations.existEmail),
+    check('id').custom(validations.existUser)
 
 ],Controllers.updateUserById)
 
 router.delete('/deleteUser/:id', [
-    
+
     check('id').notEmpty().withMessage(`Id cannot be empty`),
 
-],Controllers.deleteUserById)
+    //custom validations
+    check('id').custom(validations.isValidIdUser),
+    check('id').custom(validations.existUser)
 
+],Controllers.deleteUserById)
 
 
 //methods for Account

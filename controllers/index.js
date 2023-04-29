@@ -15,8 +15,11 @@ module.exports.Controllers = {
     },
     getUserById: async(req,res)=>{
         try {
-            const iduser = Number(req.params.id)
-            const user = await validations.existUser(iduser)
+            //Verifying errors from express-validator
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) return res.status(400).json(errors)
+            const id_user = Number(req.params.id)
+            const user = await sequelize.query(`select * from User where id_user = ${id_user};`,{type: sequelize.QueryTypes.SELECT})
             res.json(user)
         } catch (error) {
             throw new Error(error)
@@ -50,9 +53,6 @@ module.exports.Controllers = {
             const {name, email, password} = req.body
 
             const iduser = Number(req.params.id)
-            const user = await validations.existUser(iduser)
-
-            if(!user.length > 0) return res.json({message: `The user with id ${iduser} doesn't exist into the database`})
 
             await sequelize.query(`update User set name = '${name}', email = '${email}', password = '${password}'
                                     where id_user = ${iduser};`,{type: sequelize.QueryTypes.UPDATE})
@@ -64,12 +64,11 @@ module.exports.Controllers = {
     },
     deleteUserById: async(req,res) => {
         try {
+            //Verifying errors from express-validator
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) return res.status(400).json(errors)
             
             const iduser = Number(req.params.id)
-            const user = await validations.existUser(iduser)
-
-            if(!user.length > 0) return res.json({message: `The user with id ${iduser} doesn't exist into the database`})
-
             await sequelize.query(`update User set state = ${false} 
                                     where id_user = ${iduser};`,{type: sequelize.QueryTypes.UPDATE})
             res.json({message: `User with id: ${iduser} was deleted successfully`})
