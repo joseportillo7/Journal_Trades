@@ -67,13 +67,31 @@ module.exports.Controllers = {
             //Verifying errors from express-validator
             const errors = validationResult(req)
             if(!errors.isEmpty()) return res.status(400).json(errors)
-            
+
             const iduser = Number(req.params.id)
             await sequelize.query(`update User set state = ${false} 
                                     where id_user = ${iduser};`,{type: sequelize.QueryTypes.UPDATE})
             res.json({message: `User with id: ${iduser} was deleted successfully`})
         } catch (error) {
             throw new Error(error)
+        }
+    },
+
+    updatePassword: async(req, res) =>{
+        try {
+            //Verifying errors from express-validator
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) return res.status(400).json(errors)
+
+            const { password } = req.body
+            console.log(password);
+
+            const iduser = Number(req.params.id)
+            await sequelize.query(`update User set password = '${password}' 
+                                    where id_user = ${iduser};`,{type: sequelize.QueryTypes.UPDATE})
+            res.json({message: `Password was updated successfully`})
+        } catch (error) {
+            
         }
     }
 

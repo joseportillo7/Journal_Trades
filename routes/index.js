@@ -52,6 +52,16 @@ router.delete('/deleteUser/:id', [
 
 ],Controllers.deleteUserById)
 
+router.put('/updatePassword/:id',[
+    
+    check('id').notEmpty().withMessage(`Id cannot be empty`),
+    check('password').notEmpty().withMessage('The field password cannot be empty'),
+
+    //custom validations
+    check('id').custom(validations.isValidIdUser),
+    check('id').custom(validations.existUser),
+
+], Controllers.updatePassword)
 
 //methods for Account
 
