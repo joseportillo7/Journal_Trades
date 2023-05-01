@@ -87,10 +87,9 @@ module.exports.Controllers = {
             if(!errors.isEmpty()) return res.status(400).json(errors)
 
             const { password } = req.body
-            console.log(password);
 
             const iduser = Number(req.params.id)
-            await sequelize.query(`update User set password = '${password}' 
+            await sequelize.query(`update User set password = '${password}'
                                     where id_user = ${iduser};`,{type: sequelize.QueryTypes.UPDATE})
             res.json({message: `Password was updated successfully`})
         } catch (error) {
@@ -116,13 +115,58 @@ module.exports.Controllers = {
             let id_counter = await sequelize.query('select count(*) from Account', { type: sequelize.QueryTypes.SELECT})
             let count = Object.values(id_counter[0])[0]+1
 
-            await sequelize.query(`insert into Account(id_account,name,type_account,balance,id_user) 
+            await sequelize.query(`insert into Account(id_account,name,type_account,balance,id_user)
                                     values(${count},'${name}','${type_account}','${balance_account}', ${iduser});`, { type: sequelize.QueryTypes.INSERT });
             res.json({message: 'Account was created successfully'})
+        } catch (error) {
+            throw new Error(error)
+        }
+    },
+
+    /**
+     * Controllers for Operations
+     */
+    insertOperation: async(req,res)=>{
+        try {
+            //Verifying errors from express-validator
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) return res.status(400).json(errors)
+
+            const {entry, exit_name, profit, account_name} = req.body
+
+            const result = await sequelize.query(`select id_account from Account where name = '${account_name}';`,{type: sequelize.QueryTypes.SELECT})
+            const idaccount = result[0].id_account
+
+            const profit_account = Number(profit)
+
+            let id_counter = await sequelize.query('select count(*) from Operation', { type: sequelize.QueryTypes.SELECT})
+            let count = Object.values(id_counter[0])[0]+1
+
+            await sequelize.query(`insert into Operation(id_operation,entry,exit_name,profit,id_account)
+                                    values(${count},'${entry}','${exit_name}',${profit_account}, ${idaccount});`,{ type: sequelize.QueryTypes.INSERT });
+            res.json({message: 'Operation was inserted successfully'})
             
         } catch (error) {
-            throw new Error(error)    
+            throw new Error(error)
+        }
+    },
+
+    getOperations: async(req,res)=>{
+        try {
+            //Verifying errors from express-validator
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) return res.status(400).json(errors)
+
+            const account = req.params.account
+
+            const result = await sequelize.query(`select id_account from Account where name = '${account}';`,{type: sequelize.QueryTypes.SELECT})
+            const idaccount = result[0].id_account
+
+            const operations = await sequelize.query(`select * from Operation where id_account = ${idaccount} `, { type: sequelize.QueryTypes.SELECT })
+
+            res.json(operations)
+        } catch (error) {
+            throw new Error(error)
         }
     }
-
 }

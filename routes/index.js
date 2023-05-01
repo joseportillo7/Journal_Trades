@@ -85,7 +85,28 @@ router.post('/createAccount', [
 ], Controllers.createAccount)
 
 
-//Methods for Operation
+/**
+ * METHODS FOR OPERATIONS
+ */
+router.post('/insertOperation', [
 
+    check('entry').notEmpty().withMessage('The field entry cannot be empty'),
+    check('exit_name').notEmpty().withMessage('The field exit name cannot be empty'),
+    check('profit').notEmpty().withMessage('The field profit cannot be empty'),
+    check('account_name').notEmpty().withMessage('The field name account cannot be empty'), //this validation it will remove afterward (maybe)
+
+    //custom validations
+    check('account_name').custom(validations.validateAccount)
+
+], Controllers.insertOperation)
+
+router.get('/operations/:account',[
+
+    check('account').notEmpty().withMessage('The field account cannot be empty'),
+
+    //custom validations
+    check('account').custom(validations.validateAccount)
+
+], Controllers.getOperations)
 
 module.exports = router;
