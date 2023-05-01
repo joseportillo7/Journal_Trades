@@ -5,7 +5,10 @@ const { validations } = require('../helpers/validations')
 
 const { Controllers } = require('../controllers')
 
-//methods for User
+/**
+ * METHODS FOR USER
+ */
+
 router.get('/users', Controllers.getUsers)
 
 router.get('/user/:id', [
@@ -63,7 +66,24 @@ router.put('/updatePassword/:id',[
 
 ], Controllers.updatePassword)
 
-//methods for Account
+
+/**
+ * METHODS FOR ACCOUNT
+ */
+router.post('/createAccount', [
+
+    check('name').notEmpty().withMessage('The field name cannot be empty'),
+    check('type_account').notEmpty().withMessage('The field type account cannot be empty'),
+    check('balance').notEmpty().withMessage('The field balance cannot be empty'),
+    check('id_user').notEmpty().withMessage('The field id_user cannot be empty'), //this validation it will remove afterward (maybe)
+
+    //custom validations
+    check('id_user').custom(validations.isValidIdUser),
+    check('id_user').custom(validations.existUser),
+    check('name').custom(validations.existAccount)
+
+], Controllers.createAccount)
+
 
 //Methods for Operation
 

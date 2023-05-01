@@ -26,8 +26,16 @@ const existEmail = async(email,{req}) => {
     } 
 }
 
+const existAccount = async(account_name) =>{
+    const account = await sequelize.query(`select * from Account where name = '${account_name}';`)
+    if(!account.length > 0){
+        throw new Error(`The Account '${account_name}' already exist`)
+    } 
+}
+
 module.exports.validations = {
     isValidIdUser,
     existUser,
-    existEmail
+    existEmail,
+    existAccount,
 }

@@ -1,8 +1,11 @@
 const sequelize = require('../database/config')
 const { validationResult } = require('express-validator')
-const { validations } = require('../helpers/validations')
 
 module.exports.Controllers = {
+
+    /**
+     * Controllers for User
+     */
 
     getUsers: async(req,res)=>{
         try {
@@ -91,7 +94,34 @@ module.exports.Controllers = {
                                     where id_user = ${iduser};`,{type: sequelize.QueryTypes.UPDATE})
             res.json({message: `Password was updated successfully`})
         } catch (error) {
+            throw new Error(error)
+        }
+    },
+
+
+    /**
+     * Controllers for Accounts of Users.
+     */
+    createAccount: async(req,res) => {
+        try {
+            //Verifying errors from express-validator
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) return res.status(400).json(errors)
+
+            const {name, type_account, balance, id_user} = req.body
+
+            const iduser = Number(id_user)
+            const balance_account = Number(balance)
+
+            let id_counter = await sequelize.query('select count(*) from Account', { type: sequelize.QueryTypes.SELECT})
+            let count = Object.values(id_counter[0])[0]+1
+
+            await sequelize.query(`insert into Account(id_account,name,type_account,balance,id_user) 
+                                    values(${count},'${name}','${type_account}','${balance_account}', ${iduser});`, { type: sequelize.QueryTypes.INSERT });
+            res.json({message: 'Account was created successfully'})
             
+        } catch (error) {
+            throw new Error(error)    
         }
     }
 
