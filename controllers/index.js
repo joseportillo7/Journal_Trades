@@ -201,5 +201,20 @@ module.exports.Controllers = {
         } catch (error) {
             throw new Error(error)
         }
+    },
+
+    deleteOperation: async(req,res)=>{
+        try {
+            //Verifying erros from express-validator
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) return res.status(400).json(errors)
+
+            const idoperation = Number(req.params.id)
+            await sequelize.query(`delete from Operation where id_operation = ${idoperation}`,{type: sequelize.QueryTypes.DELETE})
+
+            res.json({message: 'The operation was deleted successfully'})
+        } catch (error) {
+            throw new Error(error)
+        }
     }
 }

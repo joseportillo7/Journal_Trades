@@ -129,4 +129,8 @@ router.get('/operations/:account',[
 
 ], Controllers.getOperations)
 
+router.delete('/deleteOperation/:id',[
+    check('id').notEmpty().withMessage('The param id cannot be empty')
+], Controllers.deleteOperation)
+
 module.exports = router;
