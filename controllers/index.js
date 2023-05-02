@@ -107,9 +107,10 @@ module.exports.Controllers = {
             const errors = validationResult(req)
             if(!errors.isEmpty()) return res.status(400).json(errors)
 
-            const {name, type_account, balance, id_user} = req.body
+            const {name, type_account, balance, email} = req.body
 
-            const iduser = Number(id_user)
+            const result = await sequelize.query(`select id_user from User where email = '${email}';`,{type: sequelize.QueryTypes.SELECT})
+            const iduser = result[0].id_user
             const balance_account = Number(balance)
 
             let id_counter = await sequelize.query('select count(*) from Account', { type: sequelize.QueryTypes.SELECT})

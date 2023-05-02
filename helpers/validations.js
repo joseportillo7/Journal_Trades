@@ -23,12 +23,19 @@ const existEmail = async(email,{req}) => {
         if(user[0].id_user !== Number(iduser)){
             throw new Error(`The user with the email '${email}' already exist`)
         }
-    } 
+    }
+}
+
+const validateEmail = async(email) =>{
+    const user = await sequelize.query(`select * from User where email = '${email}'`,{type: sequelize.QueryTypes.SELECT})
+    if(!user.length > 0){
+        throw new Error(`The email '${email}' doesn't exist into the database`)
+    }
+    return user
 }
 
 const existAccount = async(account_name) =>{
     const account = await sequelize.query(`select * from Account where name = '${account_name}';`,{type: sequelize.QueryTypes.SELECT})
-    console.log(account);
     if(account.length > 0){
         throw new Error(`The Account '${account_name}' already exist`)
     }else{
@@ -50,6 +57,7 @@ module.exports.validations = {
     isValidIdUser,
     existUser,
     existEmail,
+    validateEmail,
     existAccount,
     validateAccount,
 }
