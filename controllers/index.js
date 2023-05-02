@@ -134,9 +134,23 @@ module.exports.Controllers = {
             const result = await sequelize.query(`select id_user from User where email = '${email}';`,{type: sequelize.QueryTypes.SELECT})
             const iduser = result[0].id_user
 
-            const accounts = await sequelize.query(`select * from Account where id_user = ${iduser};`,{type: sequelize.QueryTypes.SELECT})
+            const accounts = await sequelize.query(`select * from Account where id_user = ${iduser} and state = ${true};`,{type: sequelize.QueryTypes.SELECT})
 
             res.json(accounts)
+        } catch (error) {
+            throw new Error(error)
+        }
+    },
+    deleteAccount: async(req, res)=>{
+        try {
+            //Verifying errors from express-validator
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) return res.status(400).json(errors)
+
+            const account = req.params.account
+
+            await sequelize.query(`update Account set state = ${false} where name = '${account}'`,{type: sequelize.QueryTypes.UPDATE})
+            res.json({message: 'Account was deleted successfully'})
         } catch (error) {
             throw new Error(error)
         }

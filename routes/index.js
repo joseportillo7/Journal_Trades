@@ -96,6 +96,15 @@ router.post('/createAccount', [
 
 ], Controllers.createAccount)
 
+router.delete('/deleteAccount/:account',[
+
+    check('account').notEmpty().withMessage('The field account cannot be empty'),
+
+    //custom validations
+    check('account').custom(validations.validateAccount)
+
+],Controllers.deleteAccount)
+
 /**
  * METHODS FOR OPERATIONS
  */
