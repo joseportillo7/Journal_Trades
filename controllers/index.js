@@ -107,7 +107,7 @@ module.exports.Controllers = {
             const errors = validationResult(req)
             if(!errors.isEmpty()) return res.status(400).json(errors)
 
-            const {name, type_account, balance, email} = req.body
+            const {name, type_program, type_account, balance, email} = req.body
 
             const result = await sequelize.query(`select id_user from User where email = '${email}';`,{type: sequelize.QueryTypes.SELECT})
             const iduser = result[0].id_user
@@ -116,8 +116,8 @@ module.exports.Controllers = {
             let id_counter = await sequelize.query('select count(*) from Account', { type: sequelize.QueryTypes.SELECT})
             let count = Object.values(id_counter[0])[0]+1
 
-            await sequelize.query(`insert into Account(id_account,name,type_account,balance,id_user)
-                                    values(${count},'${name}','${type_account}','${balance_account}', ${iduser});`, { type: sequelize.QueryTypes.INSERT });
+            await sequelize.query(`insert into Account(id_account,name,type_program,type_account,balance,state,id_user)
+                                    values(${count},'${name}','${type_program}','${type_account}','${balance_account}',${true}, ${iduser});`, { type: sequelize.QueryTypes.INSERT });
             res.json({message: 'Account was created successfully'})
         } catch (error) {
             throw new Error(error)
