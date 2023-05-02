@@ -123,6 +123,24 @@ module.exports.Controllers = {
             throw new Error(error)
         }
     },
+    getAccounts: async(req, res) =>{
+        try {
+            //Verifying errors from express-validator
+            const errors = validationResult(req)
+            if(!errors.isEmpty()) return res.status(400).json(errors)
+
+            const email = req.params.email
+
+            const result = await sequelize.query(`select id_user from User where email = '${email}';`,{type: sequelize.QueryTypes.SELECT})
+            const iduser = result[0].id_user
+
+            const accounts = await sequelize.query(`select * from Account where id_user = ${iduser};`,{type: sequelize.QueryTypes.SELECT})
+
+            res.json(accounts)
+        } catch (error) {
+            throw new Error(error)
+        }
+    },
 
     /**
      * Controllers for Operations

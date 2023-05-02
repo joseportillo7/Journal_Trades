@@ -70,6 +70,16 @@ router.put('/updatePassword/:id',[
 /**
  * METHODS FOR ACCOUNT
  */
+
+router.get('/accounts/:email',[
+
+    check('email').notEmpty().withMessage('The field email cannot be empty'),
+
+    //custom validations
+    check('email').custom(validations.validateEmail)
+
+],Controllers.getAccounts)
+
 router.post('/createAccount', [
 
     check('name').notEmpty().withMessage('The field name cannot be empty'),
@@ -82,7 +92,6 @@ router.post('/createAccount', [
     check('name').custom(validations.existAccount)
 
 ], Controllers.createAccount)
-
 
 /**
  * METHODS FOR OPERATIONS
