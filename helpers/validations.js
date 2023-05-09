@@ -38,8 +38,6 @@ const existAccount = async(account_name) =>{
     const account = await sequelize.query(`select * from Account where name = '${account_name}';`,{type: sequelize.QueryTypes.SELECT})
     if(account.length > 0){
         throw new Error(`The Account '${account_name}' already exist`)
-    }else{
-        return account
     }
 }
 
@@ -47,6 +45,8 @@ const validateAccount = async(account_name) =>{
     const account = await sequelize.query(`select * from Account where name = '${account_name}';`,{type: sequelize.QueryTypes.SELECT})
     if(!account.length > 0){
         throw new Error(`The Account '${account_name}' doesn't exist into the database`)
+    }else{
+        return account
     }
 }
 

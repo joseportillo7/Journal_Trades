@@ -27,7 +27,9 @@ class Server {
     }
 
     routes(){
-        this.app.use('/api/journal',require('../routes'))
+        this.app.use('/api/journal/user',require('../routes/users'))
+        this.app.use('/api/journal/account',require('../routes/accounts'))
+        this.app.use('/api/journal/operation',require('../routes/operations'))
     }
 
     listen(){
