@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const sequelize = require('../database/config')
+const fileUpload = require('express-fileupload')
 
 class Server {
     constructor(){
@@ -24,12 +25,17 @@ class Server {
     middlewares(){
         this.app.use(cors())
         this.app.use(express.json())
+        this.app.use(fileUpload({
+            useTempFiles: true,
+            tempFileDir: '/tmp'
+        }))
     }
 
     routes(){
         this.app.use('/api/journal/user',require('../routes/users'))
         this.app.use('/api/journal/account',require('../routes/accounts'))
         this.app.use('/api/journal/operation',require('../routes/operations'))
+        this.app.use('/api/journal/upload',require('../routes/upload'))
     }
 
     listen(){

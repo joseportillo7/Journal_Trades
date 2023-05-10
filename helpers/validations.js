@@ -1,4 +1,5 @@
 const sequelize = require('../database/config')
+const path = require('path')
 
 
 const isValidIdUser = (id) =>{
@@ -50,7 +51,20 @@ const validateAccount = async(account_name) =>{
     }
 }
 
+const validExtension = (value, { req }) => {
 
+    if(!req.files){
+        throw new Error(`Select a file please`);
+    }
+
+    const archivo = req.files.archivo;
+
+    if (path.extname(archivo.name) !== '.csv') {
+      throw new Error('The file must be CSV type');
+    }
+
+    return true;
+}
 
 
 module.exports.validations = {
@@ -60,4 +74,5 @@ module.exports.validations = {
     validateEmail,
     existAccount,
     validateAccount,
+    validExtension
 }
