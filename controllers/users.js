@@ -1,5 +1,6 @@
 const sequelize = require('../database/config')
 const { validationResult } = require('express-validator')
+const bcryptjs = require('bcryptjs')
 
 module.exports = {
 
@@ -36,10 +37,14 @@ module.exports = {
 
             const {name, email, password} = req.body
 
+             //encrypting password
+             const salt = bcryptjs.genSaltSync()//default: 10
+             const newpassword = bcryptjs.hashSync(password, salt)
+
             let id_counter = await sequelize.query('select count(*) from User', { type: sequelize.QueryTypes.SELECT})
             let count = Object.values(id_counter[0])[0]+1
             await sequelize.query(`insert into User(id_user,name,email,password,state) 
-                                    values(${count},'${name}','${email}','${password}', ${true});`, { type: sequelize.QueryTypes.INSERT });
+                                    values(${count},'${name}','${email}','${newpassword}', ${true});`, { type: sequelize.QueryTypes.INSERT });
             res.json({message: 'User was created successfully'})
         } catch (error) {
             console.log('An error occur creating user ' + error);
@@ -55,9 +60,13 @@ module.exports = {
 
             const {name, email, password} = req.body
 
+             //encrypting password
+             const salt = bcryptjs.genSaltSync()//default: 10
+             const newpassword = bcryptjs.hashSync(password, salt)
+
             const iduser = Number(req.params.id)
 
-            await sequelize.query(`update User set name = '${name}', email = '${email}', password = '${password}'
+            await sequelize.query(`update User set name = '${name}', email = '${email}', password = '${newpassword}'
                                     where id_user = ${iduser};`,{type: sequelize.QueryTypes.UPDATE})
             res.json({message: 'User was updated successfully'})
 
@@ -88,8 +97,12 @@ module.exports = {
 
             const { password } = req.body
 
+             //encrypting password
+             const salt = bcryptjs.genSaltSync()//default: 10
+             const newpassword = bcryptjs.hashSync(password, salt)
+
             const iduser = Number(req.params.id)
-            await sequelize.query(`update User set password = '${password}'
+            await sequelize.query(`update User set password = '${newpassword}'
                                     where id_user = ${iduser};`,{type: sequelize.QueryTypes.UPDATE})
             res.json({message: `Password was updated successfully`})
         } catch (error) {
