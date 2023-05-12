@@ -1,5 +1,6 @@
 const sequelize = require('../database/config')
 const { validationResult } = require('express-validator')
+const { trigger_to_balance } = require('../database/trigger')
 
 module.exports = {
     insertOperation: async(req,res)=>{
@@ -13,13 +14,15 @@ module.exports = {
             const result = await sequelize.query(`select id_account from Account where name = '${account_name}';`,{type: sequelize.QueryTypes.SELECT})
             const idaccount = result[0].id_account
 
-            const profit_account = Number(profit)
+            const profit_account = parseFloat(profit)
 
             let id_counter = await sequelize.query('select count(*) as count from Operation', { type: sequelize.QueryTypes.SELECT})
             let count = id_counter[0].count +1
 
             await sequelize.query(`insert into Operation(id_operation, entry_time, exit_time, entry, exit_name, profit, id_account)
                                     values(${count},'${entry_time}','${exit_time}','${entry}','${exit_name}',${profit_account}, ${idaccount});`,{ type: sequelize.QueryTypes.INSERT });
+            
+            await trigger_to_balance(profit_account, idaccount)
             res.json({message: 'Operation was inserted successfully'})
             
         } catch (error) {

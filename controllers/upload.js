@@ -2,6 +2,7 @@ const sequelize = require('../database/config')
 const {validationResult} = require('express-validator')
 const path = require('path')
 const readCSV = require('../database/upload')
+const { trigger_from_upload } = require('../database/trigger')
 
 module.exports = {
     uploadData: async(req,res) => {
@@ -24,14 +25,25 @@ module.exports = {
             //Read csv File from next path
             const filepath = path.join(__dirname, '../uploads/FILE.csv')
             const arr = await readCSV(filepath)
+
+            //variables to update account table
+            let comision = 0
+            let trigger_obj = []
             
             for(const element of arr){
+                const instrument = element['Instrument'].split(' ')[0]
                 const account_aux = element['Account']
                 const market_pos = element['Market pos.'] //or entry
                 const entry_time = element['Entry time']
                 const exit_time = element['Exit time']
                 const exit_name = element['Exit name'] || 'External'
                 const profit_aux = element['Profit']
+
+                if(instrument === 'NQ'){
+                    comision = 5
+                }else if(instrument === 'MNQ'){
+                    comision = 1
+                }
                 
                 //delimiting the string account
                 const account = account_aux.split('!')
@@ -60,7 +72,29 @@ module.exports = {
                 //insert into database
                 await sequelize.query(`insert into Operation(id_operation, entry_time, exit_time, entry, exit_name, profit, id_account)
                                     values(${count},'${entry_time}','${exit_time}','${market_pos}','${exit_name}',${profit}, ${account_id});`,{ type: sequelize.QueryTypes.INSERT });
+                
+                //insert into trigger_obj
+                if(trigger_obj.length == 0){
+                    //is empty, so...
+                    trigger_obj.push({ id_account: account_id, profit: profit, comision: comision})
+                }else{
+                    const result = trigger_obj.some(account => account.id_account === account_id)
+                    if(!result){
+                        trigger_obj.push({ id_account: account_id, profit: profit, comision: comision})
+                    }else{
+                        trigger_obj.forEach(obj => {
+                            if(obj.id_account === account_id){
+                                obj.profit += profit
+                                obj.comision += comision
+                            }
+                        })
+                    }
+                }
             }
+       
+            //call to trigger to update balance
+            await trigger_from_upload(trigger_obj)
+
             res.json({message: 'Operations were inserted successfully'})
         } catch (error) {
             throw new Error(error)
