@@ -9,12 +9,18 @@ module.exports = {
             const errors = validationResult(req)
             if(!errors.isEmpty()) return res.status(400).json(errors)
 
-            const {entry_time, exit_time, entry, exit_name, profit, account_name} = req.body
+            const { instrument, entry_time, exit_time, entry, exit_name, profit, account_name} = req.body
+
+            if(instrument === 'NQ'){
+                comision = 5
+            }else if(instrument === 'MNQ'){
+                comision = 1
+            }
 
             const result = await sequelize.query(`select id_account from Account where name = '${account_name}';`,{type: sequelize.QueryTypes.SELECT})
             const idaccount = result[0].id_account
 
-            const profit_account = parseFloat(profit)
+            const profit_account = parseFloat(profit) - comision
 
             let id_counter = await sequelize.query('select count(*) as count from Operation', { type: sequelize.QueryTypes.SELECT})
             let count = id_counter[0].count +1
