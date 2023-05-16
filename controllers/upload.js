@@ -29,6 +29,7 @@ module.exports = {
             //variables to update account table
             let comision = 0
             let trigger_obj = []
+            let accounts = []
             
             for(const element of arr){
                 const instrument = element['Instrument'].split(' ')[0]
@@ -47,17 +48,25 @@ module.exports = {
                 
                 //delimiting the string account
                 const account = account_aux.split('!')
-                
-                //validate if account exist
-                const result = await sequelize.query(`select id_account from Account where name = '${account[0]}';`,{type: sequelize.QueryTypes.SELECT})
 
-                if(!result.length > 0){
-                    return res.status(400).json({message: `The Account '${account[0]}' doesn't exist into the database`})
+                //insert into arrays
+                const result_exist = accounts.some(item => item.account === account[0])
+                if(!result_exist){
+                    const result = await sequelize.query(`select id_account from Account where name = '${account[0]}';`,{type: sequelize.QueryTypes.SELECT})
+                    if(!result.length > 0){
+                        return res.status(400).json({message: `The Account '${account[0]}' doesn't exist into the database`})
+                    }
+                    accounts.push({ account: account[0], id: result[0].id_account})
+                }
+                
+                let account_id = 0
+                for(const item of accounts){
+                    if(item.account === account[0]){
+                        account_id = item.id
+                    }
                 }
 
-                const account_id = result[0].id_account
-
-                let profit
+                let profit = 0
                 if(profit_aux.includes('(')){
                     const aux = profit_aux.split('(')[1].split('$')[1]
                     profit = parseFloat(aux.slice(0, aux.length -1)) * (-1)
@@ -92,6 +101,7 @@ module.exports = {
                 }
             }
        
+            console.log(trigger_obj);
             //call to trigger to update balance
             await trigger_from_upload(trigger_obj)
 
