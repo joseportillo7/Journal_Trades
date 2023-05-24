@@ -1,5 +1,6 @@
 const sequelize = require('../database/config')
 const { validationResult } = require('express-validator')
+const { validations } = require('../helpers/validations') 
 
 module.exports = {
 
@@ -9,19 +10,22 @@ module.exports = {
             const errors = validationResult(req)
             if(!errors.isEmpty()) return res.status(400).json(errors)
 
-            const {name, type_program, type_account, balance, email} = req.body
+            const {name, type_program, type_account, email} = req.body
 
             const result = await sequelize.query(`select id_user from User where email = '${email}';`,{type: sequelize.QueryTypes.SELECT})
             const iduser = result[0].id_user
-            const balance_account = Number(balance)
 
-            let id_counter = await sequelize.query('select count(*) from Account', { type: sequelize.QueryTypes.SELECT})
-            let count = Object.values(id_counter[0])[0]+1
+            let id_counter = await sequelize.query('select id_account from Account order by id_account desc limit 1', { type: sequelize.QueryTypes.SELECT})
+            const count = id_counter[0].id_account + 1
 
-            await sequelize.query(`insert into Account(id_account,name,type_program,type_account,balance,state,id_user)
-                                    values(${count},'${name}','${type_program}','${type_account}','${balance_account}',${true}, ${iduser});`, { type: sequelize.QueryTypes.INSERT });
+            const { profit_target, available, daily_loss_limit, drawdown, topLimit, stop_type, rules, balance} = validations.typeProgram(type_program)
+
+            await sequelize.query(`insert into Account(id_account,name,type_program,type_account,balance,state,id_user,available,stop_type,drawdown,top_limit,daily_loss_limit,rules,profit_target)
+                                    values(${count},'${name}','${type_program}','${type_account}',${balance},${true}, ${iduser},
+                                    ${available},'${stop_type}',${drawdown},${topLimit},${daily_loss_limit},${rules},${profit_target});`, { type: sequelize.QueryTypes.INSERT });
             res.json({message: 'Account was created successfully'})
         } catch (error) {
+            console.log(error);
             throw new Error(error)
         }
     },
