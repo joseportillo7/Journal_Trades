@@ -39,11 +39,12 @@ module.exports = {
                 const exit_time = element['Exit time']
                 const exit_name = element['Exit name'] || 'External'
                 const profit_aux = element['Profit']
+                const qty = parseFloat(element['Qty'])
 
                 if(instrument === 'NQ'){
                     comision = 5
                 }else if(instrument === 'MNQ'){
-                    comision = 1
+                    comision = 1 * qty
                 }
                 
                 //delimiting the string account
