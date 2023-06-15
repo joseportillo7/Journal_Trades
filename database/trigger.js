@@ -9,33 +9,59 @@ const trigger_to_balance = async(total, idaccount) => {
         const current_top_limit = parseFloat(result[0].top_limit)
         const type_drawdown = result[0].stop_type
         const current_drawdown = parseFloat(result[0].drawdown)
-
-        let new_balance = current_balance
-        let new_available = current_available
-        let new_drawdown = current_drawdown
-        let new_top_limit = current_top_limit
+        
         if(type_drawdown === 'static'){
-            new_balance += total
-            new_available += total
-            if(new_balance > current_top_limit){
-                new_top_limit = new_balance
-            }
+            [balance, available, drawdown, top_limit] = update_balance_static(total,current_balance,current_available,current_drawdown,current_top_limit)
+            
         }else{
-            //dynamic
-            new_balance += total
-            if(new_balance > current_top_limit){
-                new_top_limit = new_balance
-                new_drawdown += total
-            }else{
-                new_available += total
-            }
-        }    
+            [balance, available, drawdown, top_limit]  = update_balance_dynamic(total,current_balance,current_available,current_drawdown,current_top_limit)
+        }         
 
-        await sequelize.query(`update Account set balance = ${new_balance}, available = ${new_available}, drawdown = ${new_drawdown}, 
-                                top_limit = ${new_top_limit} where id_account = ${idaccount}`,{type: sequelize.QueryTypes.UPDATE})
+        await sequelize.query(`update Account set balance = ${balance}, available = ${available}, drawdown = ${drawdown}, 
+                                 top_limit = ${top_limit} where id_account = ${idaccount}`,{type: sequelize.QueryTypes.UPDATE})
     } catch (error) {
         throw new Error(error)
     }
+}
+
+const update_balance_dynamic = (total,current_balance,current_available,current_drawdown,current_top_limit) => { 
+    
+    let new_balance = current_balance + total
+    let new_available = current_available
+    let new_drawdown = current_drawdown
+    let new_top_limit = current_top_limit
+
+    if(current_top_limit > new_balance){
+        new_available = new_balance - current_drawdown
+
+        return [new_balance, new_available, current_drawdown, current_top_limit]
+    }else{
+        new_top_limit += total
+        new_drawdown += new_balance - current_top_limit
+        new_available = new_balance - new_drawdown
+
+        return [new_balance, new_available, new_drawdown, new_top_limit]
+    }
+}
+
+const update_balance_static = (total,current_balance,current_available,current_drawdown,current_top_limit)=>{
+
+    let new_balance = current_balance + total
+    let new_available = current_available
+    let new_drawdown = current_drawdown
+    let new_top_limit = current_top_limit
+
+    if(current_top_limit > new_balance){
+        new_available = new_balance - current_drawdown
+
+        return [new_balance, new_available, current_drawdown, current_top_limit]
+    }else{
+        new_top_limit += total
+        new_available = new_balance - new_drawdown
+
+        return [new_balance, new_available, new_drawdown, new_top_limit]
+    }
+
 }
 
 const trigger_from_upload = async(obj) =>{

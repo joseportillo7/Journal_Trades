@@ -2,7 +2,7 @@ const sequelize = require('../database/config')
 const {validationResult} = require('express-validator')
 const path = require('path')
 const readCSV = require('../database/upload')
-const { trigger_from_upload } = require('../database/trigger')
+const { trigger_from_upload, trigger_to_balance } = require('../database/trigger')
 
 module.exports = {
     uploadData: async(req,res) => {
@@ -19,7 +19,6 @@ module.exports = {
                 if (err) {
                 return res.status(500).send(err);
                 }
-                //res.send('File uploaded to ' + uploadPath);
             });
 
             //Read csv File from next path
@@ -42,7 +41,7 @@ module.exports = {
                 const qty = parseFloat(element['Qty'])
 
                 if(instrument === 'NQ'){
-                    comision = 5
+                    comision = 5 * qty
                 }else if(instrument === 'MNQ'){
                     comision = 1 * qty
                 }
@@ -70,41 +69,27 @@ module.exports = {
                 let profit = 0
                 if(profit_aux.includes('(')){
                     const aux = profit_aux.split('(')[1].split('$')[1]
-                    profit = parseFloat(aux.slice(0, aux.length -1)) * (-1)
+                    profit = parseFloat(aux.slice(0, aux.length -1)) * (-1) - comision//aux.length -1 because there is a ), *-1 because is a negative profit
                 }else{
-                    profit = parseFloat(profit_aux.split('$')[1])
+                    profit = parseFloat(profit_aux.split('$')[1]) - comision
                 }
 
                 // get number of the last operation
-                let id_counter = await sequelize.query('select count(*) as count from Operation', { type: sequelize.QueryTypes.SELECT})
-                let count = id_counter[0].count + 1
-
+                let count = 0
+                let id_counter = await sequelize.query('select id_operation from Operation order by id_operation desc limit 1', { type: sequelize.QueryTypes.SELECT})
+                if(!id_counter.length > 0){
+                    count++
+                }else{
+                    count = id_counter[0].id_operation + 1
+                }
+                
                 //insert into database
                 await sequelize.query(`insert into Operation(id_operation, entry_time, exit_time, entry, exit_name, profit, id_account)
                                     values(${count},'${entry_time}','${exit_time}','${market_pos}','${exit_name}',${profit}, ${account_id});`,{ type: sequelize.QueryTypes.INSERT });
                 
-                //insert into trigger_obj
-                if(trigger_obj.length == 0){
-                    //is empty, so...
-                    trigger_obj.push({ id_account: account_id, profit: profit, comision: comision})
-                }else{
-                    const result = trigger_obj.some(account => account.id_account === account_id)
-                    if(!result){
-                        trigger_obj.push({ id_account: account_id, profit: profit, comision: comision})
-                    }else{
-                        trigger_obj.forEach(obj => {
-                            if(obj.id_account === account_id){
-                                obj.profit += profit
-                                obj.comision += comision
-                            }
-                        })
-                    }
-                }
+                await trigger_to_balance(profit,account_id)
+                
             }
-       
-            console.log(trigger_obj);
-            //call to trigger to update balance
-            await trigger_from_upload(trigger_obj)
 
             res.json({message: 'Operations were inserted successfully'})
         } catch (error) {
